@@ -25,6 +25,13 @@
 USER = "henry"
 ```
 
+録画したデータのDBファイルを指定しておけば、移動後のファイルパスに書き換えます。
+
+```ruby
+RECORDED_DB = "/home/chinachu/Chinachu/data/recorded.json"
+```
+
+
 リネーム後のファイル名テンプレートを設定してください。
 
 ```ruby

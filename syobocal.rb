@@ -1,5 +1,5 @@
 #!/usr/bin/env ruby
-# encoding: utf-8
+# coding: utf-8
 
 require 'net/http'
 require 'uri'
@@ -7,6 +7,7 @@ require 'json'
 require 'time'
 require 'nkf'
 require 'fileutils'
+require 'pp'
 require_relative 'config'
 require_relative 'sanitize'
 
@@ -36,9 +37,9 @@ begin
   filename = TEMPLATE
 
   json = Net::HTTP.get (URI.parse("http://cal.syoboi.jp/rss2.php?start=#{start_time.strftime('%Y%m%d%H%M')}&end=#{end_time.strftime('%Y%m%d%H%M')}&usr=#{USER}&alt=json"))
-
   if JSON.load(json)['items'].each do |program|
     # replace
+#		pp program
     if program['ChName'] == CHANNEL[channel][0] && ( program['Title'].include?(title[0...5].strip) || program['Title'].include?(NKF.nkf('-m0Z1 -w', title)[0...5].strip) )
       next unless start_time < Time.at(program['StTime'].to_i) && Time.at(program['EdTime'].to_i) < end_time
 
@@ -76,6 +77,23 @@ begin
 
     warn File.expand_path(filepath)
     print File.expand_path(filepath)
+
+	# edit db
+	recorded_js = File.open(RECORDED_DB) do |io|
+			JSON.load(io)
+	end
+		
+	recorded_js.reverse_each do |recorded_item|
+		if recorded_item['recorded'] == recorded_data_path
+			recorded_item['recorded'] = filepath 
+			break
+		end
+	end
+	
+	File.open(RECORDED_DB,'w') do |io|
+		JSON.dump(recorded_js, io)
+	end
+
   else
     warn recorded_data_path
     print recorded_data_path
