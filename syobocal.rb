@@ -37,10 +37,13 @@ begin
   filename = TEMPLATE
 
   json = Net::HTTP.get (URI.parse("http://cal.syoboi.jp/rss2.php?start=#{start_time.strftime('%Y%m%d%H%M')}&end=#{end_time.strftime('%Y%m%d%H%M')}&usr=#{USER}&alt=json"))
+	# debug
+	puts NKF.nkf('-m0Z1 -W -w', title)[0...4].strip
   if JSON.load(json)['items'].each do |program|
     # replace
-#		pp program
-    if program['ChName'] == CHANNEL[channel][0] && ( program['Title'].include?(title[0...5].strip) || program['Title'].include?(NKF.nkf('-m0Z1 -w', title)[0...5].strip) )
+		pp program
+	puts NKF.nkf('-m0Z1 -W -w', title)[0...4].strip
+    if program['ChName'] == CHANNEL[channel][0] && ( program['Title'].include?(title[0...4].strip) || program['Title'].include?(NKF.nkf('-m0Z1 -W -w', title)[0...4].strip) )
       next unless start_time < Time.at(program['StTime'].to_i) && Time.at(program['EdTime'].to_i) < end_time
 
       filename.gsub!("$StTime$", Time.at(program['StTime'].to_i).strftime('%y%m%d'))
@@ -52,7 +55,11 @@ begin
         filename.gsub!("$Count$", "")
       end
       unless program['SubTitle'].nil?
-        filename.gsub!("$SubTitle$", program['SubTitle'].sanitize)
+				if program['SubTitle'].length < 50
+       		filename.gsub!("$SubTitle$", program['SubTitle'].sanitize)
+				else 
+        	filename.gsub!("$SubTitle$", "")
+				end
       else
         filename.gsub!("$SubTitle$", "")
       end
